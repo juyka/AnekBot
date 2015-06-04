@@ -8,9 +8,17 @@
 
 #import "TelegramService.h"
 #import <AFNetworking.h>
+@import AppKit;
 
 
 NSString *const baseURL = @"https://api.telegram.org/bot119956909:AAFjUk7ntsF45eCjKzgkQSSyq1J5U3UEcz0/";
+
+
+static inline NSString *makePlainText(NSString *htmlText) {
+	NSDictionary *attributes = @{NSDocumentTypeDocumentAttribute: NSHTMLTextDocumentType};
+	NSAttributedString *string = [NSAttributedString.alloc initWithString:htmlText attributes:attributes];
+	return string.string;
+}
 
 
 @interface TelegramService ()
