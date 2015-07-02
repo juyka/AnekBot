@@ -8,6 +8,7 @@
 
 #import "TelegramService.h"
 #import <AFNetworking.h>
+#import "AnekService.h"
 
 
 @interface TelegramService ()
@@ -39,6 +40,9 @@
 		NSDictionary *lastUpdate = updates.lastObject;
 		if (lastUpdate) {
 			self.callback([NSString stringWithFormat:@"@%@: %@", lastUpdate[@"message"][@"from"][@"username"], lastUpdate[@"message"][@"text"]]);
+			[AnekService randomAnek:^(NSString *anekString) {
+				NSLog(@"%@", anekString);
+			}];
 		}
 		
 		[self getUpdatesWithOffset:[updates valueForKeyPath:@"@max.update_id"]];
