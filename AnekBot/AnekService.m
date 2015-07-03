@@ -15,10 +15,10 @@
 	NSString *urlString = @"http://www.umori.li/api/random";
 	
 	AFHTTPSessionManager *manager = [AFHTTPSessionManager manager];
-	NSDictionary *parameters = @{@"num": @1};
+	NSDictionary *parameters = @{@"num": @5};
 	
 	[manager GET:urlString parameters:parameters success:^(NSURLSessionDataTask *task, NSArray *responseObject) {
-		NSDictionary *entry = responseObject.firstObject;
+		NSDictionary *entry = responseObject.lastObject;
 		block(entry[@"elementPureHtml"]);
 	} failure:^(NSURLSessionDataTask *task, NSError *error) {
 		NSLog(@"%@", error);

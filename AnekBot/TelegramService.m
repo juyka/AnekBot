@@ -17,11 +17,14 @@ NSString *const baseURL = @"https://api.telegram.org/bot119956909:AAFjUk7ntsF45e
 
 
 static inline NSString *makePlainText(NSString *htmlText) {
-	NSDictionary *attributes = @{NSDocumentTypeDocumentAttribute: NSHTMLTextDocumentType};
-	NSAttributedString *string = [NSAttributedString.alloc initWithString:htmlText attributes:attributes];
+	NSDictionary *options = @{NSDocumentTypeDocumentAttribute: NSHTMLTextDocumentType,
+								 NSCharacterEncodingDocumentAttribute: @(NSUTF8StringEncoding)};
+	NSAttributedString *string = [NSAttributedString.alloc initWithData:[htmlText dataUsingEncoding:NSUTF8StringEncoding]
+																options:options
+													 documentAttributes:nil
+																  error:nil];
 	return string.string;
 }
-
 
 @interface TelegramService ()
 
@@ -51,15 +54,19 @@ static inline NSString *makePlainText(NSString *htmlText) {
 	NSURLSessionDataTask *task = [manger POST:urlString parameters:dictionary success:^(NSURLSessionDataTask *operation, id responseObject) {
 		
 		NSArray *updates = responseObject[@"result"];
-		NSDictionary *lastUpdate = updates.lastObject;
-		if (lastUpdate) {
-			self.callback([NSString stringWithFormat:@"@%@: %@", lastUpdate[@"message"][@"from"][@"username"], lastUpdate[@"message"][@"text"]]);
-			[AnekService randomAnek:^(NSString *anekString) {
-				NSLog(@"%@", anekString);
-			}];
-		}
 		
-		[self getUpdatesWithOffset:[updates valueForKeyPath:@"@max.update_id"]];
+		[updates enumerateObjectsUsingBlock:^(id message, NSUInteger idx, BOOL *stop) {
+			NSNumber *chatID = @([message[@"message"][@"chat"][@"id"] integerValue]);
+			NSNumber *messageID = @([message[@"message"][@"message_id"] integerValue]);
+			NSString *text = message[@"message"][@"text"];
+			if ([text.lowercaseString containsString:@"анек"]) {
+				[AnekService randomAnek:^(NSString *anekString) {
+					[self sendMessage:chatID replyToMessage:messageID text:makePlainText(anekString)];
+				}];
+			}
+		}];
+		NSNumber *offset = @([[updates valueForKeyPath:@"@max.update_id"] integerValue] + 1);
+		[self getUpdatesWithOffset:offset];
 		
 	} failure:^(NSURLSessionDataTask *operation, NSError *error) {
 		
@@ -90,10 +97,6 @@ static inline NSString *makePlainText(NSString *htmlText) {
 
 - (void)stopTask {
 	[self.task cancel];
-}
-
-- (NSString *)accessToken {
-	return @"119956909:AAFjUk7ntsF45eCjKzgkQSSyq1J5U3UEcz0";
 }
 
 @end
